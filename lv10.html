@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SIÊU TRÍ NHỚ – Level 10</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+body { display:flex; align-items:center; justify-content:center; }
+#app { background: url('b2.jpg') no-repeat center/cover; }
+</style>
+</head>
+<body>
+<div class="bg-layer bg-grid" style="opacity:.3"></div>
+<div id="app">
+  <div id="global-progress"><div id="global-progress-fill"></div></div>
+
+  <!-- ÔN TẬP -->
+  <div class="review-screen" id="review-screen">
+    <div class="review-title">LEVEL 10</div>
+    <div class="review-subtitle">🎯 Ôn tập Bộ số 40–49</div>
+    <div class="review-grid" id="review-grid"></div>
+    <div style="font-size:.8rem;color:rgba(255,255,255,.5);text-align:center;margin-top:6px;">
+      Bắn hạ 10 mục tiêu để qua màn!
+    </div>
+    <button class="action-btn" onclick="startGame()">🚀 KHAI HỎA</button>
+    <a href="index.html" class="home-btn" style="margin-top:10px;display:inline-block;padding:8px 20px;font-size:.85rem;">🏠 Menu</a>
+  </div>
+
+  <!-- HEADER -->
+  <div class="header-bar" id="header-bar" style="display:none">
+    <div>
+      <div class="level-badge">LEVEL 10</div>
+      <div class="score-wrap">Đã hạ: <span id="score">0</span>/10</div>
+    </div>
+    <div class="lives-wrap" id="lives-display">❤️❤️❤️❤️❤️</div>
+    <button class="home-btn" onclick="confirmHome()">🏠</button>
+  </div>
+
+  <!-- SKY -->
+  <div id="sky"></div>
+
+  <!-- BASE -->
+  <div id="base-panel"></div>
+
+  <!-- WIN -->
+  <div class="modal-overlay" id="win-modal">
+    <div style="font-size:3.5rem">🚀</div>
+    <div class="modal-title" style="color:#FFD700">XUẤT SẮC!</div>
+    <div class="modal-sub">Bạn đã làm chủ Level 10<br>Bộ số 40–49</div>
+    <div class="modal-points">+800 ĐIỂM</div>
+    <div class="modal-progress-wrap"><div class="modal-progress-fill" id="win-fill"></div></div>
+    <button class="action-btn" onclick="window.location.href='lv11.html'">LEVEL 11 ➔</button>
+    <a href="index.html" class="home-btn" style="margin-top:10px;display:inline-block;padding:8px 20px">🏠 Menu</a>
+  </div>
+
+  <!-- LOSE -->
+  <div class="modal-overlay" id="lose-modal">
+    <div style="font-size:3rem">💥</div>
+    <div class="modal-title" style="color:var(--red)">THẤT THỦ!</div>
+    <div class="modal-sub">Chiến đấu lại ngay!</div>
+    <button class="action-btn danger" onclick="location.reload()">↺ THỬ LẠI</button>
+    <a href="index.html" class="home-btn" style="margin-top:10px;display:inline-block;padding:8px 20px">🏠 Menu</a>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+STN.init(10);
+
+const LV = 10;
+const NEXT_HREF = 'lv11.html';
+const POINTS = 800;
+const TARGETS = 10;
+const FALL_DUR = 7;
+const BEAM_FN = STN.FX.drawSonicWave;
+const INIT_LIVES = 5;
+
+const gameData = [{"id": 40, "label": "40", "text": "Bút chì", "img": "40.png"}, {"id": 41, "label": "41", "text": "Bình cứu hỏa", "img": "41.png"}, {"id": 42, "label": "42", "text": "Diều", "img": "42.png"}, {"id": 43, "label": "43", "text": "Người lướt sóng", "img": "43.png"}, {"id": 44, "label": "44", "text": "Rừng thông", "img": "44.png"}, {"id": 45, "label": "45", "text": "Nam châm", "img": "45.png"}, {"id": 46, "label": "46", "text": "Cung tên", "img": "46.png"}, {"id": 47, "label": "47", "text": "Cầu thang", "img": "47.png"}, {"id": 48, "label": "48", "text": "Doraemon", "img": "48.png"}, {"id": 49, "label": "49", "text": "Ly tách", "img": "49.png"}];
+
+// Review
+const rg = document.getElementById('review-grid');
+gameData.forEach(d => {
+  rg.innerHTML += `<div class="review-cell">
+    <img src="${d.img}" onerror="this.style.opacity=.3">
+    <div class="rc-label">${d.label}<br>${d.text}</div>
+  </div>`;
+});
+
+// Base buttons
+const base = document.getElementById('base-panel');
+gameData.forEach(d => {
+  base.innerHTML += `
+    <div class="turret-wrap">
+      <div class="turret-icon" id="turret-${d.id}">🗼</div>
+      <button class="shoot-btn" onclick="shoot(${d.id})">${d.label}</button>
+    </div>`;
+});
+
+let lives=INIT_LIVES, score=0, active=false, won=false;
+let queue=[], spawnTid;
+
+function startGame() {
+  document.getElementById('review-screen').classList.add('hidden');
+  document.getElementById('header-bar').style.display='flex';
+  lives=INIT_LIVES; score=0; won=false; active=true;
+  document.getElementById('score').innerText=0;
+  updateLives();
+  queue = STN.Utils.shuffle([...gameData]);
+  STN.Audio.startBg();
+  spawnNext();
+}
+
+function spawnNext() {
+  if(!active||won||queue.length===0) return;
+  const d=queue.pop();
+  const sky=document.getElementById('sky');
+  const m=document.createElement('div');
+  m.className='meteor';
+  m.dataset.id=d.id; m.dataset.dead='false';
+  m.style.left=(Math.random()*72+4)+'%';
+  m.style.setProperty('--fall-dur', FALL_DUR+'s');
+  m.innerHTML=`<img src="${d.img}" onerror="this.style.opacity=.3"><div class="meteor-label">${d.text}</div>`;
+  sky.appendChild(m);
+  m.addEventListener('animationend',()=>{
+    if(document.body.contains(m)){
+      if(m.dataset.dead==='false'&&!won) takeDamage();
+      m.remove(); checkEnd();
+    }
+  });
+  spawnTid=setTimeout(spawnNext, 3200 + Math.random()*800);
+}
+
+function shoot(id) {
+  if(!active||won) return;
+  STN.Audio.sfx.shoot();
+  const meteors=[...document.querySelectorAll('.meteor')]
+    .filter(m=>parseInt(m.dataset.id)===id&&m.dataset.dead==='false');
+  if(meteors.length>0) {
+    const target=meteors.reduce((p,c)=>c.offsetTop>p.offsetTop?c:p);
+    target.dataset.dead='true';
+    const app=document.getElementById('app');
+    const turret=document.getElementById('turret-'+id);
+    const cr=turret.getBoundingClientRect(), tr=target.getBoundingClientRect();
+    const ar=app.getBoundingClientRect();
+    BEAM_FN(app,
+      cr.left+cr.width/2-ar.left, cr.top-ar.top,
+      tr.left+tr.width/2-ar.left, tr.top+tr.height/2-ar.top
+    );
+    STN.Audio.sfx.boom();
+    score++;
+    document.getElementById('score').innerText=score;
+    STN.FX.popup(app, tr.left-ar.left, tr.top-ar.top, '💥 +'+POINTS);
+    setTimeout(()=>{
+      target.innerHTML='<span style="font-size:60px;filter:drop-shadow(0 0 10px gold)">💥</span>';
+      if(score>=TARGETS){ won=true; setTimeout(win,400); }
+      setTimeout(()=>{ if(target.parentNode) target.remove(); checkEnd(); },220);
+    },80);
+  } else {
+    takeDamage();
+  }
+}
+
+function takeDamage() {
+  if(!active||won) return;
+  STN.Audio.sfx.wrong();
+  STN.FX.damageFlash(document.getElementById('app'));
+  document.getElementById('app').classList.add('shake');
+  setTimeout(()=>document.getElementById('app').classList.remove('shake'),300);
+  lives--; updateLives();
+  if(lives<=0) lose();
+}
+
+function updateLives() {
+  let h=''; for(let i=0;i<lives;i++) h+='❤️';
+  document.getElementById('lives-display').innerText=h||'💀';
+}
+
+function checkEnd() {
+  const alive=document.querySelectorAll('.meteor[data-dead="false"]').length;
+  if(queue.length===0&&alive===0&&score<TARGETS&&active&&!won) {
+    setTimeout(()=>{ if(score<TARGETS&&!won) lose(); },600);
+  }
+}
+
+function win() {
+  active=false; clearTimeout(spawnTid);
+  STN.Progress.markDone(LV);
+  STN.Audio.stopBg(); STN.Audio.sfx.win();
+  STN.FX.confetti(70);
+  document.getElementById('win-modal').classList.add('active');
+  setTimeout(()=>document.getElementById('win-fill').style.width='100%',500);
+}
+
+function lose() {
+  if(won) return;
+  active=false; clearTimeout(spawnTid);
+  STN.Audio.stopBg(); STN.Audio.sfx.lose();
+  document.getElementById('lose-modal').classList.add('active');
+}
+
+function confirmHome() {
+  STN.Audio.sfx.click();
+  if(confirm('Về menu? Tiến trình màn này sẽ mất.')) window.location.href='index.html';
+}
+
+window.addEventListener('keydown',e=>{
+  if(e.key.toLowerCase()==='t') win();
+  if(e.key.toLowerCase()==='l') lose();
+});
+</script>
+</body>
+</html>

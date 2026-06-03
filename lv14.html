@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SIÊU TRÍ NHỚ – Level 13</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+body { display:flex; align-items:center; justify-content:center; }
+#app { background: url('b2.jpg') no-repeat center/cover; }
+#app::after {
+  content:''; position:absolute; inset:0;
+  background:rgba(0,0,0,.45); pointer-events:none; z-index:0;
+}
+.header-bar, .timer-wrap, .board-area { position:relative; z-index:1; }
+</style>
+</head>
+<body>
+<div class="bg-layer bg-grid" style="opacity:.4"></div>
+<div id="app">
+  <div id="global-progress"><div id="global-progress-fill"></div></div>
+
+  <!-- ÔN TẬP -->
+  <div class="review-screen" id="review-screen">
+    <div class="review-title">LEVEL 13</div>
+    <div class="review-subtitle">🧠 Ghi nhớ Bộ số 60–69</div>
+    <div class="review-grid" id="review-grid"></div>
+    <div style="font-size:.8rem;color:rgba(255,255,255,.5);text-align:center;margin-top:6px;">
+      Chạm để ghi nhớ • 10 cặp số-hình
+    </div>
+    <button class="action-btn" onclick="startGame()">▶ BẮT ĐẦU CHƠI</button>
+    <a href="index.html" class="home-btn" style="margin-top:10px;display:inline-block;padding:8px 20px;font-size:.85rem;">🏠 Menu</a>
+  </div>
+
+  <!-- HEADER -->
+  <div class="header-bar" id="header-bar" style="display:none">
+    <div>
+      <div class="level-badge">LEVEL 13</div>
+      <div style="font-size:.65rem;opacity:.5">Bộ số 60–69</div>
+    </div>
+    <div class="lives-wrap" id="lives-display">❤️❤️❤️</div>
+    <button class="home-btn" onclick="confirmHome()">🏠</button>
+  </div>
+
+  <!-- TIMER -->
+  <div class="timer-wrap" id="timer-wrap" style="display:none">
+    <div class="timer-track">
+      <div class="timer-fill" id="timer-fill"></div>
+      <div class="timer-label"><span id="timer-num">10</span>s</div>
+    </div>
+  </div>
+
+  <!-- BOARD -->
+  <div class="board-area" id="board-area" style="display:none">
+    <div class="card-row" id="top-row"></div>
+    <div class="card-row" id="bot-row"></div>
+  </div>
+
+  <!-- WIN -->
+  <div class="modal-overlay" id="win-modal">
+    <div style="font-size:3.5rem;margin-bottom:8px">🏆</div>
+    <div class="modal-title" style="color:#FFD700">XUẤT SẮC!</div>
+    <div class="modal-sub">Bạn đã chinh phục Level 13<br>Bộ số 60–69</div>
+    <div class="modal-points">+800 ĐIỂM</div>
+    <div class="modal-time" id="win-time"></div>
+    <div class="modal-progress-wrap"><div class="modal-progress-fill" id="win-fill"></div></div>
+    <button class="action-btn" onclick="window.location.href='lv14.html'">LEVEL 14 ➔</button>
+    <a href="index.html" class="home-btn" style="margin-top:10px;display:inline-block;padding:8px 20px">🏠 Menu</a>
+  </div>
+
+  <!-- LOSE -->
+  <div class="modal-overlay" id="lose-modal">
+    <div style="font-size:3rem">😤</div>
+    <div class="modal-title" style="color:var(--red)">CỐ LÊN!</div>
+    <div class="modal-sub">Sắp được rồi, thử lại ngay!</div>
+    <button class="action-btn danger" onclick="location.reload()">↺ CHƠI LẠI</button>
+    <a href="index.html" class="home-btn" style="margin-top:10px;display:inline-block;padding:8px 20px">🏠 Menu</a>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+STN.init(13);
+
+const LV = 13;
+const NEXT_HREF = 'lv14.html';
+const POINTS = 800;
+const TOTAL_TIME = 10;
+
+const gameData = [{"id": 60, "label": "60", "text": "Con cua", "img": "60.png"}, {"id": 61, "label": "61", "text": "Kẹo mút", "img": "61.png"}, {"id": 62, "label": "62", "text": "Điện thoại", "img": "62.png"}, {"id": 63, "label": "63", "text": "Xe máy", "img": "63.png"}, {"id": 64, "label": "64", "text": "Người lính", "img": "64.png"}, {"id": 65, "label": "65", "text": "Cú mèo", "img": "65.png"}, {"id": 66, "label": "66", "text": "Tai nghe", "img": "66.png"}, {"id": 67, "label": "67", "text": "Cá", "img": "67.png"}, {"id": 68, "label": "68", "text": "Bầu rượu", "img": "68.png"}, {"id": 69, "label": "69", "text": "Bát quái", "img": "69.png"}];
+
+// Review
+const rg = document.getElementById('review-grid');
+gameData.forEach(d => {
+  rg.innerHTML += `<div class="review-cell">
+    <img src="${d.img}" onerror="this.style.opacity=.3">
+    <div class="rc-label">${d.label}<br>${d.text}</div>
+  </div>`;
+});
+
+let lives=3, turnTime=TOTAL_TIME, matched=0, startTs;
+let timerId=null, selId=null, selEl=null, busy=false, combo=0;
+
+function startGame() {
+  document.getElementById('review-screen').classList.add('hidden');
+  ['header-bar','timer-wrap','board-area'].forEach(id=>document.getElementById(id).style.display='');
+  document.getElementById('header-bar').style.display='flex';
+  document.getElementById('timer-wrap').style.display='block';
+  document.getElementById('board-area').style.display='flex';
+  lives=3; matched=0; combo=0; startTs=Date.now();
+  updateLives(); renderBoard(); startTimer();
+  STN.Audio.startBg();
+}
+
+function renderBoard() {
+  const top=document.getElementById('top-row');
+  const bot=document.getElementById('bot-row');
+  top.innerHTML=''; bot.innerHTML='';
+  STN.Utils.shuffle(gameData).forEach(d=>{
+    const c=document.createElement('div');
+    c.className='card number-card';
+    c.dataset.id=d.id; c.innerText=d.label;
+    c.onclick=()=>pickNumber(d.id,c);
+    top.appendChild(c);
+  });
+  STN.Utils.shuffle(gameData).forEach(d=>{
+    const c=document.createElement('div');
+    c.className='card image-card';
+    c.dataset.id=d.id;
+    c.innerHTML=`<img src="${d.img}" onerror="this.style.opacity=.3"><div class="img-label">${d.text}</div>`;
+    c.onclick=()=>pickImage(d.id,c);
+    bot.appendChild(c);
+  });
+}
+
+function startTimer() {
+  clearInterval(timerId);
+  turnTime=TOTAL_TIME; updateTimer();
+  timerId=setInterval(()=>{
+    turnTime-=.1;
+    if(turnTime<3) STN.Audio.sfx.tick();
+    if(turnTime<=0){ clearInterval(timerId); damage(); }
+    updateTimer();
+  },100);
+}
+
+function updateTimer() {
+  const pct=Math.max(0,turnTime/TOTAL_TIME)*100;
+  const fill=document.getElementById('timer-fill');
+  fill.style.width=pct+'%';
+  fill.className='timer-fill'+(turnTime<3?' danger':'');
+  document.getElementById('timer-num').innerText=Math.ceil(Math.max(0,turnTime));
+}
+
+function pickNumber(id,el) {
+  if(busy||el.classList.contains('hidden-card')) return;
+  STN.Audio.sfx.select();
+  if(selEl) selEl.classList.remove('selected');
+  selId=id; selEl=el; el.classList.add('selected');
+}
+
+function pickImage(id,el) {
+  if(busy||selId===null||el.classList.contains('hidden-card')) return;
+  busy=true;
+  clearInterval(timerId);
+  if(selId===id) {
+    combo++;
+    STN.Audio.sfx.match();
+    if(combo>=3) STN.Audio.sfx.combo();
+    const app=document.getElementById('app');
+    const er=el.getBoundingClientRect(), ar=app.getBoundingClientRect();
+    STN.FX.popup(app, er.left-ar.left, er.top-ar.top, combo>=3?'COMBO! +'+POINTS*2:'+'+POINTS);
+    const pair=[el,selEl];
+    pair.forEach(c=>c.classList.add(combo>=3?'combo-fx':'burning'));
+    setTimeout(()=>{
+      pair.forEach(c=>c.classList.add('hidden-card'));
+      matched++;
+      if(matched===gameData.length) win();
+      else { reset(); startTimer(); }
+    }, combo>=3?750:500);
+  } else {
+    combo=0;
+    STN.Audio.sfx.wrong();
+    STN.FX.damageFlash(document.getElementById('app'));
+    document.getElementById('app').classList.add('shake');
+    setTimeout(()=>{
+      document.getElementById('app').classList.remove('shake');
+      if(selEl) selEl.classList.remove('selected');
+      reset();
+      damage();
+    },320);
+  }
+}
+
+function reset(){ selId=null; selEl=null; busy=false; }
+
+function damage(){
+  lives--;
+  updateLives();
+  if(lives<=0) lose();
+  else { STN.Audio.sfx.wrong(); startTimer(); }
+}
+
+function updateLives(){
+  let h=''; for(let i=0;i<lives;i++) h+='❤️';
+  document.getElementById('lives-display').innerText=h||'💀';
+}
+
+function win(){
+  clearInterval(timerId);
+  STN.Progress.markDone(LV);
+  STN.Audio.stopBg();
+  STN.Audio.sfx.win();
+  STN.FX.confetti(70);
+  const t=Math.floor((Date.now()-startTs)/1000);
+  document.getElementById('win-time').innerText='⏱ Thời gian: '+t+' giây';
+  document.getElementById('win-modal').classList.add('active');
+  setTimeout(()=>document.getElementById('win-fill').style.width='100%',500);
+}
+
+function lose(){
+  clearInterval(timerId);
+  STN.Audio.stopBg();
+  STN.Audio.sfx.lose();
+  document.getElementById('lose-modal').classList.add('active');
+}
+
+function confirmHome(){
+  STN.Audio.sfx.click();
+  if(confirm('Về menu? Tiến trình màn này sẽ mất.')) window.location.href='index.html';
+}
+
+window.addEventListener('keydown',e=>{
+  if(e.key.toLowerCase()==='t') win();
+  if(e.key.toLowerCase()==='l') lose();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SIÊU TRÍ NHỚ – Level 28</title>
+<link rel="stylesheet" href="shared.css">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+<style>
+body { display:flex; align-items:center; justify-content:center; }
+
+#app {
+  background: #050505;
+  position: relative;
+}
+.bg-img {
+  position: absolute; inset: 0;
+  background: url('b1.jpg') no-repeat center/cover;
+  opacity: 0.35; pointer-events: none; z-index: 0;
+}
+
+/* ── HEADER ── */
+.quiz-header {
+  display: flex; flex-direction: column;
+  padding: 10px 14px 8px;
+  background: rgba(0,0,0,0.88);
+  border-bottom: 3px solid var(--theme);
+  z-index: 10; flex-shrink: 0;
+  position: relative;
+}
+.qh-row1 { display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; }
+.qh-lv { font-family:var(--font-head); font-size:1rem; letter-spacing:2px; color:var(--theme); }
+.qh-score { font-family:var(--font-head); font-size:1.3rem; color:var(--gold); text-shadow:0 0 10px var(--gold); }
+.qh-count { font-size:.85rem; color:rgba(255,255,255,.6); }
+
+.hearts-row {
+  display: flex; gap: 4px; justify-content:center; margin-bottom: 6px;
+}
+.heart-icon { font-size:18px; transition:all .3s; }
+.heart-icon.lost { opacity:.2; filter:grayscale(1); transform:scale(.8); }
+
+.qtimer-track {
+  height: 10px; background: rgba(255,255,255,.1);
+  border-radius: 5px; overflow: hidden;
+}
+.qtimer-fill {
+  height: 100%; background: var(--theme);
+  transition: width 0.1s linear;
+  border-radius: 5px;
+}
+.qtimer-fill.danger { background: var(--red); animation: timerBlink .5s infinite; }
+@keyframes timerBlink { 50% { opacity:.5; } }
+
+/* ── QUIZ AREA ── */
+.quiz-area {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 16px; gap: 18px;
+  position: relative; z-index: 1;
+}
+.question-box {
+  font-family: var(--font-head);
+  font-size: 5.5rem; color: var(--gold);
+  text-shadow: 0 0 25px var(--gold);
+  background: rgba(255,255,255,.05);
+  width: 155px; height: 155px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 22px; border: 4px solid var(--gold);
+  box-shadow: var(--glow-gold);
+  letter-spacing: 2px;
+  animation: qPulse 2s ease-in-out infinite;
+}
+@keyframes qPulse {
+  0%,100% { box-shadow: var(--glow-gold); }
+  50% { box-shadow: 0 0 35px rgba(255,215,0,.9), 0 0 60px rgba(255,215,0,.4); }
+}
+
+.options-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px; width: 100%;
+}
+.opt-card {
+  background: white; border-radius: 16px; padding: 8px;
+  border: 4px solid transparent; cursor: pointer;
+  display: flex; justify-content:center; align-items:center;
+  aspect-ratio: 1/1;
+  box-shadow: 0 4px 12px rgba(0,0,0,.3);
+  transition: border-color .15s, transform .1s;
+}
+.opt-card:active { transform: scale(.93); }
+.opt-card img { width:85%; height:85%; object-fit:contain; }
+.opt-card.correct-tap { border-color: var(--green); background: #e0fff0; }
+.opt-card.wrong-tap   { border-color: var(--red);   background: #fff0f0; }
+
+/* ── FLOATING SCORE ── */
+.score-float {
+  position: absolute; font-family: var(--font-head);
+  font-size: 2.2rem; pointer-events: none;
+  animation: floatUp .85s ease-out forwards; z-index: 100;
+  left: 50%; transform: translateX(-50%); top: 20%;
+}
+@keyframes floatUp {
+  0%   { opacity:1; transform: translate(-50%,0); }
+  100% { opacity:0; transform: translate(-50%,-70px); }
+}
+
+/* ── MODALS ── */
+.q-modal {
+  position: absolute; inset: 0; z-index: 300;
+  background: rgba(0,0,0,.97);
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  padding: 24px; text-align: center;
+  animation: modalIn .3s ease;
+}
+.q-modal.active { display: flex; }
+@keyframes modalIn {
+  from { opacity:0; transform:scale(.94); }
+  to   { opacity:1; transform:scale(1); }
+}
+.q-modal-title {
+  font-family: var(--font-head); font-size: 2.4rem; letter-spacing:3px; margin-bottom:6px;
+}
+.q-modal-sub { font-size:.95rem; color:rgba(255,255,255,.65); margin-bottom:10px; line-height:1.4; }
+.q-modal-pts {
+  font-family: var(--font-head); font-size: 2.2rem;
+  color: var(--green); letter-spacing:2px;
+  text-shadow: var(--glow-green); margin: 6px 0;
+}
+.badge-img {
+  width:160px; height:auto; margin: 8px 0;
+  filter: drop-shadow(0 0 20px var(--gold));
+  transform: scale(0); transition: transform .6s cubic-bezier(.175,.885,.32,1.275);
+}
+.q-modal.active .badge-img { transform: scale(1); }
+
+.progress-bar-wrap {
+  width:75%; max-width:240px; height:12px;
+  background:rgba(255,255,255,.1); border-radius:6px;
+  overflow:hidden; border:1px solid var(--gold); margin:8px auto;
+}
+.progress-bar-fill {
+  height:100%; width:0%;
+  background:linear-gradient(90deg,var(--gold2),var(--gold));
+  border-radius:6px; transition:width 1s ease;
+}
+
+.result-stat {
+  font-size:.9rem; color:rgba(255,255,255,.5); margin:4px 0 10px;
+}
+</style>
+</head>
+<body>
+<div class="bg-layer bg-grid" style="opacity:.3"></div>
+<div id="app">
+  <div class="bg-img" id="bg-img"></div>
+  <div id="global-progress"><div id="global-progress-fill"></div></div>
+
+  <!-- HEADER -->
+  <div class="quiz-header" id="quiz-header" style="display:none">
+    <div class="qh-row1">
+      <div class="qh-lv">LEVEL 28 · 00–99 • 3.5s/câu</div>
+      <div class="qh-score" id="live-score">0</div>
+      <div class="qh-count">Câu <span id="cur-q">1</span>/100</div>
+    </div>
+    <div class="hearts-row" id="hearts-row"></div>
+    <div class="qtimer-track">
+      <div class="qtimer-fill" id="qtimer-fill"></div>
+    </div>
+  </div>
+
+  <!-- QUIZ AREA -->
+  <div class="quiz-area" id="quiz-area" style="display:none">
+    <div class="question-box" id="question-box">--</div>
+    <div class="options-grid" id="options-grid"></div>
+  </div>
+
+  <!-- REVIEW MODAL -->
+  <div class="q-modal active" id="review-modal">
+    <div class="q-modal-title" style="color:var(--theme)">LEVEL 28 — CẢNH GIỚI</div>
+    <div class="q-modal-sub">
+      Trả lời đúng 100 câu hỏi<br>
+      ⏱ Mỗi câu <b style="color:var(--gold)">3.5s</b> · 5 mạng
+    </div>
+    <div style="font-size:.8rem;color:rgba(255,255,255,.35);margin-bottom:16px">Hiện số → Chọn hình đúng</div>
+    <button class="action-btn" onclick="startGame()">▶ BẮT ĐẦU</button>
+    <a href="index.html" class="home-btn" style="margin-top:10px;display:inline-block;padding:8px 20px">🏠 Menu</a>
+  </div>
+
+  <!-- WIN MODAL -->
+  <div class="q-modal" id="win-modal">
+    <div style="font-size:3rem;margin-bottom:4px">🏆</div>
+    <div class="q-modal-title" style="color:var(--gold)">XUẤT SẮC!</div>
+    <div class="q-modal-sub">Level 28 đã bị chinh phục!</div>
+    <div class="q-modal-pts">+100,000 ĐIỂM</div>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="win-fill"></div></div>
+    <div class="result-stat" id="win-stat"></div>
+    <button class="action-btn" onclick="window.location.href='lv29.html'">LEVEL 29 ➔</button>
+    <a href="index.html" class="home-btn" style="margin-top:8px;display:inline-block;padding:8px 20px">🏠 Menu</a>
+  </div>
+
+  <!-- LOSE MODAL -->
+  <div class="q-modal" id="lose-modal">
+    <div style="font-size:3rem;margin-bottom:4px">💀</div>
+    <div class="q-modal-title" style="color:var(--red)">HẾT MẠNG!</div>
+    <div class="q-modal-sub">Cố gắng lên, sắp được rồi!</div>
+    <div class="result-stat" id="lose-stat"></div>
+    <button class="action-btn danger" onclick="location.reload()">↺ THỬ LẠI</button>
+    <a href="index.html" class="home-btn" style="margin-top:8px;display:inline-block;padding:8px 20px">🏠 Menu</a>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+STN.init(28);
+
+// Random background
+const BGs = ['b1.jpg','b2.jpg','b3.jpg','b4.jpg','b5.jpg','b6.jpg'];
+document.getElementById('bg-img').style.background =
+  `url('${BGs[Math.floor(Math.random()*BGs.length)]}') no-repeat center/cover`;
+
+const LV = 28;
+const NEXT = 'lv29.html';
+const LEVEL_TIME = 3.5;
+const INIT_LIVES = 5;
+const PTS = 20;
+const BONUS = 100000;
+const WARN_AT = 1.1;
+const INTERVAL = 100;
+
+const baseData = ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99"];
+
+let quizData=[], idx=0, correct=0, lives=INIT_LIVES, score=0;
+let timeLeft=LEVEL_TIME, timerId=null, warned=false;
+
+// ── Hearts ──────────────────────────────────────────────────
+function buildHearts() {
+  const row = document.getElementById('hearts-row');
+  row.innerHTML = '';
+  for(let i=0; i<INIT_LIVES; i++) {
+    const s = document.createElement('span');
+    s.className = 'heart-icon'; s.innerText = '❤️'; s.id = 'h'+i;
+    row.appendChild(s);
+  }
+}
+function updateHearts() {
+  for(let i=0; i<INIT_LIVES; i++)
+    document.getElementById('h'+i).className = 'heart-icon' + (i >= lives ? ' lost' : '');
+}
+
+// ── Start ────────────────────────────────────────────────────
+function startGame() {
+  document.getElementById('review-modal').classList.remove('active');
+  document.getElementById('quiz-header').style.display = '';
+  document.getElementById('quiz-area').style.display = '';
+  buildHearts();
+  quizData = STN.Utils.shuffle([...baseData]);
+  STN.Audio.startBg();
+  loadQ();
+}
+
+// ── Load question ────────────────────────────────────────────
+function loadQ() {
+  if(idx >= quizData.length) { win(); return; }
+  document.getElementById('cur-q').innerText = idx+1;
+  const correctNum = quizData[idx];
+  document.getElementById('question-box').innerText = correctNum;
+
+  // 4 options
+  let opts = [correctNum];
+  while(opts.length < 4) {
+    const r = baseData[Math.floor(Math.random()*baseData.length)];
+    if(!opts.includes(r)) opts.push(r);
+  }
+  opts = STN.Utils.shuffle(opts);
+
+  const grid = document.getElementById('options-grid');
+  grid.innerHTML = '';
+  opts.forEach(opt => {
+    const c = document.createElement('div');
+    c.className = 'opt-card';
+    c.innerHTML = `<img src="${opt}.png" onerror="this.style.opacity=.3">`;
+    c.onclick = () => answer(opt, correctNum, c);
+    grid.appendChild(c);
+  });
+
+  startTimer();
+}
+
+// ── Timer ────────────────────────────────────────────────────
+function startTimer() {
+  clearInterval(timerId); timeLeft = LEVEL_TIME; warned = false;
+  const fill = document.getElementById('qtimer-fill');
+  fill.style.width = '100%'; fill.classList.remove('danger');
+  timerId = setInterval(() => {
+    timeLeft -= INTERVAL/1000;
+    fill.style.width = Math.max(0, (timeLeft/LEVEL_TIME)*100) + '%';
+    if(timeLeft <= WARN_AT && !warned) {
+      fill.classList.add('danger');
+      STN.Audio.sfx.tick(); warned = true;
+    }
+    if(timeLeft <= 0) { clearInterval(timerId); answer(null, '__TIMEOUT__', null); }
+  }, INTERVAL);
+}
+
+// ── Answer ───────────────────────────────────────────────────
+function answer(selected, correctNum, card) {
+  clearInterval(timerId);
+  document.getElementById('options-grid').style.pointerEvents = 'none';
+
+  if(selected === correctNum) {
+    correct++; score += PTS;
+    if(card) card.classList.add('correct-tap');
+    STN.Audio.sfx.match();
+    const qr = document.getElementById('quiz-area').getBoundingClientRect();
+    const ar = document.getElementById('app').getBoundingClientRect();
+    STN.FX.popup(document.getElementById('app'),
+      qr.left - ar.left + qr.width/2, qr.top - ar.top + qr.height*0.2,
+      '+'+PTS, '#00FF88');
+    idx++;
+    setTimeout(() => {
+      document.getElementById('options-grid').style.pointerEvents = 'auto';
+      loadQ();
+    }, 350);
+  } else {
+    if(card) card.classList.add('wrong-tap');
+    STN.Audio.sfx.wrong();
+    STN.FX.damageFlash(document.getElementById('app'));
+    document.getElementById('app').classList.add('shake');
+    setTimeout(() => document.getElementById('app').classList.remove('shake'), 300);
+    lives--; updateHearts();
+    if(lives <= 0) { setTimeout(lose, 500); return; }
+    idx++;
+    setTimeout(() => {
+      document.getElementById('options-grid').style.pointerEvents = 'auto';
+      loadQ();
+    }, 550);
+  }
+  document.getElementById('live-score').innerText = score;
+}
+
+// ── Win / Lose ───────────────────────────────────────────────
+function win() {
+  clearInterval(timerId);
+  STN.Progress.markDone(LV);
+  STN.Audio.stopBg(); STN.Audio.sfx.win();
+  STN.FX.confetti(70);
+  document.getElementById('win-stat').innerText = '✅ Đúng '+correct+'/'+quizData.length;
+  document.getElementById('win-modal').classList.add('active');
+  setTimeout(() => document.getElementById('win-fill').style.width='100%', 500);
+}
+
+function lose() {
+  clearInterval(timerId);
+  STN.Audio.stopBg(); STN.Audio.sfx.lose();
+  document.getElementById('lose-stat').innerText = 'Kết quả: '+correct+'/'+quizData.length;
+  document.getElementById('lose-modal').classList.add('active');
+}
+
+window.addEventListener('keydown', e => {
+  if(e.key.toLowerCase()==='t') { idx = quizData.length; if(!quizData.length) { quizData=baseData; } win(); }
+  if(e.key.toLowerCase()==='l') lose();
+});
+</script>
+</body>
+</html>
