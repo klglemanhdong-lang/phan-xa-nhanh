@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>SIÊU TRÍ NHỚ – Level 19</title>
+<title>SIÊU TRÍ NHỚ – Level 20</title>
 <link rel="stylesheet" href="shared.css">
 <style>
 body { display:flex; align-items:center; justify-content:center; }
@@ -22,20 +22,20 @@ body { display:flex; align-items:center; justify-content:center; }
 
   <!-- ÔN TẬP -->
   <div class="review-screen" id="review-screen">
-    <div class="review-title">LEVEL 19</div>
+    <div class="review-title">LEVEL 20</div>
     <div class="review-subtitle">🧠 Ghi nhớ Bộ số 90–99</div>
     <div class="review-grid" id="review-grid"></div>
     <div style="font-size:.8rem;color:rgba(255,255,255,.5);text-align:center;margin-top:6px;">
       Chạm để ghi nhớ • 10 cặp số-hình
     </div>
     <button class="action-btn" onclick="startGame()">▶ BẮT ĐẦU CHƠI</button>
-    <a href="index.html" class="home-btn" style="margin-top:10px;display:inline-block;padding:8px 20px;font-size:.85rem;">🏠 Menu</a>
+    <a href="index.html" class="home-btn" style="margin-top:10px;display:inline-block;padding:8px 21px;font-size:.85rem;">🏠 Menu</a>
   </div>
 
   <!-- HEADER -->
   <div class="header-bar" id="header-bar" style="display:none">
     <div>
-      <div class="level-badge">LEVEL 19</div>
+      <div class="level-badge">LEVEL 20</div>
       <div style="font-size:.65rem;opacity:.5">Bộ số 90–99</div>
     </div>
     <div class="lives-wrap" id="lives-display">❤️❤️❤️</div>
@@ -60,12 +60,12 @@ body { display:flex; align-items:center; justify-content:center; }
   <div class="modal-overlay" id="win-modal">
     <div style="font-size:3.5rem;margin-bottom:8px">🏆</div>
     <div class="modal-title" style="color:#FFD700">XUẤT SẮC!</div>
-    <div class="modal-sub">Bạn đã chinh phục Level 19<br>Bộ số 90–99</div>
+    <div class="modal-sub">Bạn đã chinh phục Level 20<br>Bộ số 90–99</div>
     <div class="modal-points">+1100 ĐIỂM</div>
     <div class="modal-time" id="win-time"></div>
     <div class="modal-progress-wrap"><div class="modal-progress-fill" id="win-fill"></div></div>
-    <button class="action-btn" onclick="window.location.href='lv20.html'">LEVEL 20 ➔</button>
-    <a href="index.html" class="home-btn" style="margin-top:10px;display:inline-block;padding:8px 20px">🏠 Menu</a>
+    <button class="action-btn" onclick="window.location.href='lv21.html'">LEVEL 21 ➔</button>
+    <a href="index.html" class="home-btn" style="margin-top:10px;display:inline-block;padding:8px 21px">🏠 Menu</a>
   </div>
 
   <!-- LOSE -->
@@ -74,16 +74,16 @@ body { display:flex; align-items:center; justify-content:center; }
     <div class="modal-title" style="color:var(--red)">CỐ LÊN!</div>
     <div class="modal-sub">Sắp được rồi, thử lại ngay!</div>
     <button class="action-btn danger" onclick="location.reload()">↺ CHƠI LẠI</button>
-    <a href="index.html" class="home-btn" style="margin-top:10px;display:inline-block;padding:8px 20px">🏠 Menu</a>
+    <a href="index.html" class="home-btn" style="margin-top:10px;display:inline-block;padding:8px 21px">🏠 Menu</a>
   </div>
 </div>
 
 <script src="shared.js"></script>
 <script>
-STN.init(19);
+STN.init(20);
 
-const LV = 19;
-const NEXT_HREF = 'lv20.html';
+const LV = 20;
+const NEXT_HREF = 'lv21.html';
 const POINTS = 1100;
 const TOTAL_TIME = 10;
 
