@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="shared.css">
 <style>
 body { display:flex; align-items:center; justify-content:center; }
-#app { justify-content:flex-start; overflow-y:auto; padding:32px 14px 36px; gap:0; }
+#app { justify-content:flex-start; overflow-y:auto; padding:32px 14px 36px; gap:0; scroll-behavior: smooth; }
 
 /* Logo */
 .logo-wrap { text-align:center; padding:20px 0 14px; flex-shrink:0; }
@@ -41,6 +41,48 @@ body { display:flex; align-items:center; justify-content:center; }
 .tp-count { font-family:var(--font-head); font-size:1rem; color:var(--gold); }
 .tp-track { height:8px; background:rgba(255,255,255,.07); border-radius:4px; overflow:hidden; }
 .tp-fill { height:100%; background:linear-gradient(90deg,var(--gold),var(--gold2)); border-radius:4px; transition:width .8s ease; box-shadow:0 0 6px var(--gold); }
+
+/* ── CSS CHÓI SÁNG ĐẶC BIỆT CHO 2 Ô THI ĐẤU ── */
+.tournament-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.tournament-btn {
+  border-width: 2px !important;
+  background: rgba(0,0,0,.4) !important;
+  animation: tournamentSuperGlow 2s infinite alternate !important;
+  opacity: 1 !important;
+}
+.tournament-btn .stars {
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  margin-top: 2px;
+  text-shadow: 0 0 6px currentColor;
+}
+/* Ô 3 Sao phát sáng màu Cam Vàng */
+#btn-tour-3 {
+  --t-color: #ff9f43;
+  border-color: #ff9f43 !important;
+}
+#btn-tour-3 .stars { color: #ff9f43; }
+/* Ô 5 Sao phát sáng rực rỡ màu Đỏ Hồng Trùm Cuối */
+#btn-tour-5 {
+  --t-color: #ff3838;
+  border-color: #ff3838 !important;
+}
+#btn-tour-5 .stars { color: #ff3838; }
+
+@keyframes tournamentSuperGlow {
+  0% {
+    box-shadow: 0 0 8px rgba(var(--t-color), 0.3), inset 0 0 4px rgba(var(--t-color), 0.2);
+    filter: brightness(1);
+  }
+  100% {
+    box-shadow: 0 0 25px var(--t-color), inset 0 0 12px var(--t-color);
+    filter: brightness(1.3);
+  }
+}
 
 /* Section */
 .section { width:100%; max-width:380px; margin:0 auto 18px; }
@@ -82,6 +124,20 @@ body { display:flex; align-items:center; justify-content:center; }
 .lv-btn.locked::after {
   content:"🔒"; position:absolute; top:5px; right:7px; font-size:11px;
 }
+
+/* ── HỘP KHUNG VÀNG PHÁT SÁNG CHO LEVEL HIỆN TẠI ── */
+.lv-btn.current-playing {
+  border-color: #FFD700 !important;
+  border-width: 2px !important;
+  background: rgba(255, 215, 0, 0.08) !important;
+  animation: currentLevelPulse 1.8s infinite ease-in-out !important;
+  box-shadow: 0 0 14px rgba(255, 215, 0, 0.5), inset 0 0 8px rgba(255, 215, 0, 0.2) !important;
+}
+@keyframes currentLevelPulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(255, 215, 0, 0.4), inset 0 0 6px rgba(255, 215, 0, 0.1); filter: brightness(1); }
+  50% { box-shadow: 0 0 22px rgba(255, 215, 0, 0.8), inset 0 0 12px rgba(255, 215, 0, 0.3); filter: brightness(1.15); }
+}
+
 /* Màn quiz ôn tập - full width */
 .lv-btn.quiz-exam {
   grid-column: span 2;
@@ -96,6 +152,8 @@ body { display:flex; align-items:center; justify-content:center; }
   grid-column: span 2;
   border-color:#FF4500 !important; border-width:3px;
   background:linear-gradient(135deg,rgba(255,69,0,.12),rgba(255,215,0,.08));
+}
+.lv-btn.boss-lv:not(.current-playing) {
   animation:bossGlow 2s ease-in-out infinite;
 }
 @keyframes bossGlow {
@@ -105,6 +163,9 @@ body { display:flex; align-items:center; justify-content:center; }
 .lv-btn.boss-lv .lv-num { color:#FF4500; font-size:1.5rem; }
 
 .lv-num  { font-family:var(--font-head); font-size:1.35rem; letter-spacing:2px; color:var(--c,#00d2ff); position:relative; }
+/* Đồng bộ màu chữ số cho ô hiện tại sang vàng Gold nhẹ để ăn nhập tổng thể */
+.lv-btn.current-playing .lv-num { color: #FFD700 !important; }
+
 .lv-name { font-size:.7rem; opacity:.72; position:relative; text-align:center; line-height:1.3; }
 .lv-sub  { font-size:.6rem; opacity:.38; position:relative; text-align:center; }
 .lv-type { font-size:.6rem; opacity:.4; position:relative; }
@@ -119,6 +180,47 @@ body { display:flex; align-items:center; justify-content:center; }
 
 ::-webkit-scrollbar { width:3px; }
 ::-webkit-scrollbar-thumb { background:rgba(255,215,0,.2); border-radius:2px; }
+
+/* ── GIAO DIỆN HỘP THOẠI NHẬP MẬT MÃ CAO CẤP CHUYÊN BIỆT ── */
+.custom-modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999; opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.custom-modal-overlay.active { opacity: 1; pointer-events: auto; }
+.custom-modal {
+  background: #0f141c; border: 2px solid var(--modal-color, var(--gold));
+  border-radius: 16px; padding: 24px; width: 90%; max-width: 340px;
+  text-align: center; box-shadow: 0 0 25px var(--modal-color, rgba(255, 215, 0, 0.4));
+  transform: scale(0.85); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.custom-modal-overlay.active .custom-modal { transform: scale(1); }
+.modal-title {
+  font-family: var(--font-head); font-size: 1.2rem; letter-spacing: 2px;
+  margin-bottom: 6px; color: var(--modal-color, var(--gold));
+  text-shadow: 0 0 8px var(--modal-color, rgba(255, 215, 0, 0.3));
+}
+.modal-subtitle { font-size: 0.75rem; color: rgba(255, 255, 255, 0.6); margin-bottom: 18px; }
+.modal-input {
+  width: 100%; padding: 12px; border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(0, 0, 0, 0.4);
+  color: #fff; font-size: 1.1rem; text-align: center; letter-spacing: 3px;
+  margin-bottom: 18px; outline: none; transition: border-color 0.2s;
+}
+.modal-input:focus { border-color: var(--modal-color, var(--gold)); box-shadow: 0 0 8px var(--modal-color, rgba(255,215,0,0.2)); }
+.modal-error { color: #ff3838; font-size: 0.7rem; margin-top: -12px; margin-bottom: 12px; display: none; font-weight: bold; }
+.modal-actions { display: flex; gap: 10px; }
+.modal-btn {
+  flex: 1; padding: 10px; border-radius: 8px; border: none;
+  font-family: var(--font-head); font-size: 0.85rem; letter-spacing: 1px;
+  cursor: pointer; transition: background 0.2s, transform 0.1s;
+}
+.modal-btn-cancel { background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255,255,255,0.1); }
+.modal-btn-cancel:active { transform: scale(0.96); }
+.modal-btn-confirm { background: var(--modal-color, var(--gold)); color: #000; font-weight: bold; }
+.modal-btn-confirm:active { transform: scale(0.96); }
 </style>
 </head>
 <body>
@@ -128,14 +230,12 @@ body { display:flex; align-items:center; justify-content:center; }
 <div id="app">
   <div id="global-progress"><div id="global-progress-fill"></div></div>
 
-  <!-- Logo -->
   <div class="logo-wrap">
     <div class="logo-ring"><span class="logo-emoji">🧠</span></div>
     <div class="main-title">SIÊU TRÍ NHỚ</div>
     <div class="title-sub">MEMORY MASTER</div>
   </div>
 
-  <!-- Total progress -->
   <div class="total-prog">
     <div class="tp-row">
       <span>TIẾN TRÌNH TỔNG</span>
@@ -144,7 +244,28 @@ body { display:flex; align-items:center; justify-content:center; }
     <div class="tp-track"><div class="tp-fill" id="tp-fill"></div></div>
   </div>
 
-  <!-- CẤP 1 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-tag" style="color:#ffaa00;border-color:rgba(255,170,0,.4);background:rgba(255,170,0,.07)">
+        🏆 ĐẤU TRƯỜNG
+      </div>
+      <div class="section-line" style="background:#ffaa00"></div>
+      <div style="font-size:.68rem;color:rgba(255,170,0,.5);white-space:nowrap">Chế độ Siêu Cấp</div>
+    </div>
+    <div class="tournament-grid">
+      <a href="#" id="btn-tour-3" class="lv-btn tournament-btn">
+        <div class="lv-num" style="color:#ff9f43;">THI ĐẤU</div>
+        <div class="lv-name" id="name-tour-3">Đấu Trí Nhớ 3 Sao</div>
+        <div class="stars">⭐⭐⭐</div>
+      </a>
+      <a href="#" id="btn-tour-5" class="lv-btn tournament-btn">
+        <div class="lv-num" style="color:#ff3838;">THI ĐẤU</div>
+        <div class="lv-name" id="name-tour-5">Đấu Trí Nhớ 5 Sao</div>
+        <div class="stars">⭐⭐⭐⭐⭐</div>
+      </a>
+    </div>
+  </div>
+
   <div class="section">
     <div class="section-header">
       <div class="section-tag" style="color:#00d2ff;border-color:rgba(0,210,255,.4);background:rgba(0,210,255,.07)">
@@ -156,7 +277,6 @@ body { display:flex; align-items:center; justify-content:center; }
     <div class="level-grid" id="grid-cap1"></div>
   </div>
 
-  <!-- CẤP 2 -->
   <div class="section">
     <div class="section-header">
       <div class="section-tag" style="color:#2ecc71;border-color:rgba(46,204,113,.4);background:rgba(46,204,113,.07)">
@@ -168,7 +288,6 @@ body { display:flex; align-items:center; justify-content:center; }
     <div class="level-grid" id="grid-cap2"></div>
   </div>
 
-  <!-- CẤP 3 -->
   <div class="section">
     <div class="section-header">
       <div class="section-tag" style="color:#e91e8c;border-color:rgba(233,30,140,.4);background:rgba(233,30,140,.07)">
@@ -181,36 +300,49 @@ body { display:flex; align-items:center; justify-content:center; }
   </div>
 </div>
 
+<div class="custom-modal-overlay" id="pwd-modal-overlay">
+  <div class="custom-modal" id="pwd-modal">
+    <div class="modal-title" id="modal-title">KÍCH HOẠT TRẬN ĐẤU</div>
+    <div class="modal-subtitle">Vui lòng nhập mật mã để mở khóa</div>
+    <input type="text" class="modal-input" id="modal-input" placeholder="••••" autocomplete="off" spellcheck="false">
+    <div class="modal-error" id="modal-error">MẬT MÃ KHÔNG CHÍNH XÁC!</div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" id="modal-btn-cancel">HỦY BỎ</button>
+      <button class="modal-btn modal-btn-confirm" id="modal-btn-confirm">XÁC NHẬN</button>
+    </div>
+  </div>
+</div>
+
 <script src="shared.js"></script>
 <script>
 const TOTAL = 33;
 
 // ── CẤP 1: LV 1-11 ─────────────────────────────────────────
 const CAP1 = [
-  {n:1,  name:"Ghép Thẻ",        sub:"00–09", type:"card",  href:"lv1.html",  c:"#00d2ff"},
+  {n:1,  name:"Ghép Thẻ",        sub:"00–09", type:"card",   href:"lv1.html",  c:"#00d2ff"},
   {n:2,  name:"Bắn Thiên Thạch", sub:"00–09", type:"shoot", href:"lv2.html",  c:"#00d2ff"},
-  {n:3,  name:"Ghép Thẻ",        sub:"10–19", type:"card",  href:"lv3.html",  c:"#00d2ff"},
+  {n:3,  name:"Ghép Thẻ",        sub:"10–19", type:"card",   href:"lv3.html",  c:"#00d2ff"},
   {n:4,  name:"Bắn Thiên Thạch", sub:"10–19", type:"shoot", href:"lv4.html",  c:"#00d2ff"},
-  {n:5,  name:"Ghép Thẻ",        sub:"20–29", type:"card",  href:"lv5.html",  c:"#00d2ff"},
+  {n:5,  name:"Ghép Thẻ",        sub:"20–29", type:"card",   href:"lv5.html",  c:"#00d2ff"},
   {n:6,  name:"Phi Tiêu",        sub:"20–29", type:"shoot", href:"lv6.html",  c:"#00d2ff"},
-  {n:7,  name:"Ghép Thẻ",        sub:"30–39", type:"card",  href:"lv7.html",  c:"#00d2ff"},
+  {n:7,  name:"Ghép Thẻ",        sub:"30–39", type:"card",   href:"lv7.html",  c:"#00d2ff"},
   {n:8,  name:"Bảo Vệ Trái Đất", sub:"30–39", type:"shoot", href:"lv8.html",  c:"#00d2ff"},
-  {n:9,  name:"Ghép Thẻ",        sub:"40–49", type:"card",  href:"lv9.html",  c:"#00d2ff"},
+  {n:9,  name:"Ghép Thẻ",        sub:"40–49", type:"card",   href:"lv9.html",  c:"#00d2ff"},
   {n:10, name:"Bắn Thiên Thạch", sub:"40–49", type:"shoot", href:"lv10.html", c:"#00d2ff"},
   {n:11, name:"Kiểm Tra Tổng",   sub:"00–50 • 51 câu • 10s", type:"exam", href:"lv11.html", c:"#00d2ff", alwaysOpen:true},
 ];
 
 // ── CẤP 2: LV 12-22 ────────────────────────────────────────
 const CAP2 = [
-  {n:12, name:"Ghép Thẻ",        sub:"50–59", type:"card",  href:"lv12.html", c:"#2ecc71"},
+  {n:12, name:"Ghép Thẻ",        sub:"50–59", type:"card",   href:"lv12.html", c:"#2ecc71"},
   {n:13, name:"Bắn Thiên Thạch", sub:"50–59", type:"shoot", href:"lv13.html", c:"#2ecc71"},
-  {n:14, name:"Ghép Thẻ",        sub:"60–69", type:"card",  href:"lv14.html", c:"#2ecc71"},
+  {n:14, name:"Ghép Thẻ",        sub:"60–69", type:"card",   href:"lv14.html", c:"#2ecc71"},
   {n:15, name:"Bắn Thiên Thạch", sub:"60–69", type:"shoot", href:"lv15.html", c:"#2ecc71"},
-  {n:16, name:"Ghép Thẻ",        sub:"70–79", type:"card",  href:"lv16.html", c:"#2ecc71"},
+  {n:16, name:"Ghép Thẻ",        sub:"70–79", type:"card",   href:"lv16.html", c:"#2ecc71"},
   {n:17, name:"Bắn Thiên Thạch", sub:"70–79", type:"shoot", href:"lv17.html", c:"#2ecc71"},
-  {n:18, name:"Ghép Thẻ",        sub:"80–89", type:"card",  href:"lv18.html", c:"#2ecc71"},
+  {n:18, name:"Ghép Thẻ",        sub:"80–89", type:"card",   href:"lv18.html", c:"#2ecc71"},
   {n:19, name:"Sóng Siêu Âm",    sub:"80–89", type:"shoot", href:"lv19.html", c:"#2ecc71"},
-  {n:20, name:"Ghép Thẻ",        sub:"90–99", type:"card",  href:"lv20.html", c:"#2ecc71"},
+  {n:20, name:"Ghép Thẻ",        sub:"90–99", type:"card",   href:"lv20.html", c:"#2ecc71"},
   {n:21, name:"Bắn Laser",       sub:"90–99", type:"shoot", href:"lv21.html", c:"#2ecc71"},
   {n:22, name:"Kiểm Tra Tổng",   sub:"50–99 • 50 câu • 10s", type:"exam", href:"lv22.html", c:"#2ecc71", alwaysOpen:true},
 ];
@@ -233,6 +365,9 @@ const CAP3 = [
 const TYPE_ICON = { card:'🃏', shoot:'🚀', exam:'📝', quiz:'⚡' };
 const TYPE_LABEL = { card:'Ghép thẻ', shoot:'Bắn hạ', exam:'Trắc nghiệm', quiz:'Quiz' };
 
+let targetScrollElement = null;
+let maxUnlockedLv = 1;
+
 function makeBtn(lv, grid) {
   const done     = STN.Progress.isDone(lv.n);
   const unlocked = lv.alwaysOpen ? true : STN.Progress.isUnlocked(lv.n);
@@ -241,6 +376,7 @@ function makeBtn(lv, grid) {
   const isSpeed  = !!lv.speed;
 
   const a = document.createElement('a');
+  a.id = `btn-lv-${lv.n}`;
   a.href = unlocked ? lv.href : '#';
   let cls = 'lv-btn';
   if (done)     cls += ' done';
@@ -273,6 +409,7 @@ function makeBtn(lv, grid) {
   } else if (isSpeed) {
     a.innerHTML = `
       <div class="lv-num">LV ${lv.n}</div>
+      <div class="hover-glow"></div>
       <div class="lv-name">${unlocked ? lv.name : 'Chưa mở'}</div>
       <div class="lv-sub">${lv.sub}</div>
       <div class="speed-badge">${lv.speed}</div>`;
@@ -283,6 +420,12 @@ function makeBtn(lv, grid) {
       <div class="lv-name">${unlocked ? lv.name : 'Chưa mở'}</div>
       <div class="lv-type">${unlocked ? icon+' '+TYPE_LABEL[lv.type] : '🔒 Hoàn thành LV '+(lv.n-1)}</div>
       <div class="lv-sub">${lv.sub}</div>`;
+  }
+
+  // Thuật toán tìm level cao nhất đang mở khóa (Chính là Level hiện tại cần chơi)
+  if (unlocked && lv.n >= maxUnlockedLv && !lv.alwaysOpen) {
+    maxUnlockedLv = lv.n;
+    targetScrollElement = a;
   }
 
   a.addEventListener('click', e => {
@@ -315,6 +458,95 @@ const done = STN.Progress.countDone();
 document.getElementById('done-count').innerText = done + ' / ' + TOTAL;
 document.getElementById('tp-fill').style.width = (done/TOTAL*100) + '%';
 document.getElementById('global-progress-fill').style.width = (done/TOTAL*100) + '%';
+
+
+// ── LOGIC TỰ ĐỘNG CUỘN VÀ TẶNG KHUNG VÀNG SÁNG CHO LEVEL HIỆN TẠI ──
+if (targetScrollElement) {
+  // Thêm Class khung vàng chói sáng vào phần tử được định vị
+  targetScrollElement.classList.add('current-playing');
+  
+  setTimeout(() => {
+    targetScrollElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 400);
+}
+
+
+// ── LOGIC XỬ LÝ RIÊNG BIỆT CHO 2 Ô THI ĐẤU SIÊU SÁNG ──
+const btnTour3 = document.getElementById('btn-tour-3');
+const btnTour5 = document.getElementById('btn-tour-5');
+
+let currentModalContext = null;
+
+function openCustomPrompt(title, themeColor, onConfirm) {
+  const overlay = document.getElementById('pwd-modal-overlay');
+  const input = document.getElementById('modal-input');
+  const txtTitle = document.getElementById('modal-title');
+  const errDiv = document.getElementById('modal-error');
+  
+  txtTitle.innerText = title.toUpperCase();
+  overlay.style.setProperty('--modal-color', themeColor);
+  errDiv.style.display = 'none';
+  input.value = '';
+  
+  overlay.classList.add('active');
+  setTimeout(() => input.focus(), 150);
+  
+  currentModalContext = { overlay, input, errDiv, onConfirm };
+}
+
+function closeCustomPrompt() {
+  if (currentModalContext) {
+    currentModalContext.overlay.classList.remove('active');
+    currentModalContext = null;
+  }
+}
+
+function submitCustomModal() {
+  if (!currentModalContext) return;
+  const { input, errDiv, onConfirm } = currentModalContext;
+  const code = input.value.trim();
+  
+  const success = onConfirm(code);
+  
+  if (success) {
+    closeCustomPrompt();
+  } else {
+    if(STN.Audio.sfx.wrong) STN.Audio.sfx.wrong();
+    errDiv.style.display = 'block';
+    document.getElementById('pwd-modal').animate([
+      {transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}
+    ], {duration:220});
+    input.select();
+  }
+}
+
+document.getElementById('modal-btn-confirm').addEventListener('click', submitCustomModal);
+document.getElementById('modal-btn-cancel').addEventListener('click', closeCustomPrompt);
+document.getElementById('modal-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') submitCustomModal();
+  if (e.key === 'Escape') closeCustomPrompt();
+});
+
+function handleTournamentClick(e, correctCode, targetHref, title, themeColor) {
+  e.preventDefault();
+  const targetBtn = e.currentTarget;
+
+  openCustomPrompt(title, themeColor, (codeInput) => {
+    if (codeInput === correctCode) {
+      if(STN.Audio.sfx.click) STN.Audio.sfx.click();
+      setTimeout(() => window.location.href = targetHref, 110);
+      return true; 
+    } else {
+      targetBtn.animate([
+        {transform:'translateX(-5px)'},{transform:'translateX(5px)'},{transform:'translateX(0)'}
+      ], {duration:220});
+      return false;
+    }
+  });
+}
+
+btnTour3.addEventListener('click', e => handleTournamentClick(e, 'chien', 'thidautrinhocap3sao.html', 'Đấu Trí Nhớ 3 Sao', '#ff9f43'));
+btnTour5.addEventListener('click', e => handleTournamentClick(e, 'dau', 'thidautrinhocap5sao.html', 'Đấu Trí Nhớ 5 Sao', '#ff3838'));
 
 document.addEventListener('click',   () => STN.Audio.startBg(), {once:true});
 document.addEventListener('touchstart', () => STN.Audio.startBg(), {once:true});
