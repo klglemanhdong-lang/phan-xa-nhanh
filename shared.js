@@ -385,12 +385,10 @@
       btn.onclick = () => { G.Audio.sfx.click(); window.location.href = 'index.html'; };
     });
 
-    // TỰ ĐỘNG PHÁT NHẠC NỀN RIÊNG DÀNH CHO 2 MAN THI ĐẤU
+    // TỰ ĐỘNG PHÁT NHẠC NỀN RIÊNG DÀNH CHO 2 MÀN THI ĐẤU
     const currentPath = decodeURIComponent(window.location.pathname.toLowerCase());
-    const isSpecialLevel = currentPath.includes('3_sao') || 
-                           currentPath.includes('3s') || 
-                           currentPath.includes('5_sao') || 
-                           currentPath.includes('5s');
+    const isSpecialLevel = currentPath.includes('thidautrinhocap3sao.html') || 
+                           currentPath.includes('thidautrinhocap5sao.html');
 
     const playBgAudio = () => {
       if (isSpecialLevel) {
