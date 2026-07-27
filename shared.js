@@ -33,7 +33,7 @@
   document.addEventListener('touchstart', resumeAC, { once: true });
   document.addEventListener('click', resumeAC, { once: true });
 
-  function tone(freq, type, dur, vol = 0.25, delay = 0) {
+  function tone(freq, type, dur, vol = 0.15, delay = 0) {
     const o = AC.createOscillator(), g = AC.createGain();
     o.connect(g); g.connect(AC.destination);
     o.type = type; o.frequency.value = freq;
@@ -122,9 +122,11 @@
     }
   };
 
-  // Nhạc nền — hợp âm nhẹ
+  // Nhạc nền mặc định — hợp âm nhẹ
   let bgActive = false;
   let bgStep = 0;
+  let customAudio = null;
+
   const BG_CHORDS = [
     [261, 329, 392], [293, 369, 440],
     [349, 440, 523], [329, 415, 493],
@@ -146,8 +148,28 @@
 
   G.Audio = {
     sfx: SFX,
-    startBg() { resumeAC(); if (!bgActive) { bgActive = true; bgTick(); } },
-    stopBg()  { bgActive = false; },
+    startBg(customSrc) {
+      resumeAC();
+      // Nếu có truyền file nhạc ngoài hoặc tự động nhận diện file nhạc thi đấu
+      if (customSrc) {
+        if (!customAudio) {
+          customAudio = new Audio(customSrc);
+          customAudio.loop = true;
+          customAudio.volume = 0.25; // Giảm 50% âm lượng
+        }
+        customAudio.play().catch(e => console.log("Lỗi autoplay:", e));
+      } else {
+        // Các level bình thường chạy nhạc synth mặc định
+        if (!bgActive) { bgActive = true; bgTick(); }
+      }
+    },
+    stopBg() {
+      bgActive = false;
+      if (customAudio) {
+        customAudio.pause();
+        customAudio.currentTime = 0;
+      }
+    },
   };
 
   // ── PROGRESS SYSTEM ─────────────────────────────────────────
@@ -164,14 +186,6 @@
     isDone(lv) {
       return this.get(lv) === 1;
     },
-    // Unlock rules:
-    // LV 1: luôn mở
-    // LV 2-10: mở khóa tuần tự (cần lv trước)
-    // LV 11: luôn mở (quiz ôn tập cấp 1)
-    // LV 12-21: mở khóa tuần tự (cần lv trước)
-    // LV 22: luôn mở (quiz ôn tập cấp 2)
-    // LV 23: luôn mở (bắt đầu cấp 3)
-    // LV 24-33: mở khóa tuần tự
     isUnlocked(lv) {
       if (lv <= 1)  return true;
       if (lv === 11) return true;
@@ -184,10 +198,8 @@
       for (let i = 1; i <= TOTAL_LEVELS; i++) if (this.isDone(i)) c++;
       return c;
     },
-    // Gọi ở đầu mỗi level — nếu bị khóa thì redirect về index
     gate(lv) {
       if (!this.isUnlocked(lv)) {
-        // Hiện thông báo rồi về menu
         document.body.innerHTML = `
           <div style="
             position:fixed;inset:0;background:#0a0a18;
@@ -227,7 +239,6 @@
       const color = THEMES[level] || '#00d2ff';
       const r = document.documentElement;
       r.style.setProperty('--theme', color);
-      // Parse hex → rgba for dim
       const hex = color.replace('#','');
       const ri = parseInt(hex.substr(0,2),16);
       const gi = parseInt(hex.substr(2,2),16);
@@ -277,7 +288,6 @@
       setTimeout(() => p.remove(), 900);
     },
 
-    // Tia laser thẳng
     drawLaser(container, x1, y1, x2, y2) {
       const len = Math.hypot(x2-x1, y2-y1);
       const ang = Math.atan2(y2-y1, x2-x1) * 180 / Math.PI;
@@ -288,7 +298,6 @@
       setTimeout(() => el.remove(), 280);
     },
 
-    // Chùm plasma
     drawPlasma(container, x1, y1, x2, y2) {
       const len = Math.hypot(x2-x1, y2-y1);
       const ang = Math.atan2(y2-y1, x2-x1) * 180 / Math.PI;
@@ -300,7 +309,6 @@
       setTimeout(() => el.remove(), 260);
     },
 
-    // Phi tiêu shuriken
     fireShurikens(container, x1, y1, x2, y2, count = 3) {
       for (let i = 0; i < count; i++) {
         setTimeout(() => {
@@ -318,10 +326,8 @@
       }
     },
 
-    // Sóng siêu âm
     drawSonicWave(container, x1, y1, x2, y2) {
       const steps = 5;
-      const cRect = container.getBoundingClientRect();
       for (let i = 0; i <= steps; i++) {
         setTimeout(() => {
           const cx = x1 + (x2-x1)*(i/steps);
@@ -359,13 +365,12 @@
     }
   };
 
-  // ── INIT (gọi từ mỗi level) ─────────────────────────────────
+  // ── INIT ───────────────────────────────────────────────────
   G.init = function(levelNum) {
-    // Kiểm tra khóa — nếu chưa mở thì dừng lại
     if (!G.Progress.gate(levelNum)) return;
     G.Theme.apply(levelNum);
     G.Progress.renderBar(levelNum);
-    // Inject global progress bar nếu chưa có
+    
     let gp = document.getElementById('global-progress');
     if (!gp) {
       gp = document.createElement('div');
@@ -375,13 +380,28 @@
       if (app) app.prepend(gp);
     }
     G.Progress.renderBar(levelNum);
-    // Nút home
+    
     document.querySelectorAll('.home-btn').forEach(btn => {
       btn.onclick = () => { G.Audio.sfx.click(); window.location.href = 'index.html'; };
     });
-    // Bắt đầu nhạc nền khi chạm lần đầu
-    document.addEventListener('touchstart', () => G.Audio.startBg(), { once: true });
-    document.addEventListener('click',      () => G.Audio.startBg(), { once: true });
+
+    // TỰ ĐỘNG PHÁT NHẠC NỀN RIÊNG DÀNH CHO 2 MAN THI ĐẤU
+    const currentPath = decodeURIComponent(window.location.pathname.toLowerCase());
+    const isSpecialLevel = currentPath.includes('3_sao') || 
+                           currentPath.includes('3s') || 
+                           currentPath.includes('5_sao') || 
+                           currentPath.includes('5s');
+
+    const playBgAudio = () => {
+      if (isSpecialLevel) {
+        G.Audio.startBg('nhacnen2.mp3');
+      } else {
+        G.Audio.startBg();
+      }
+    };
+
+    document.addEventListener('touchstart', playBgAudio, { once: true });
+    document.addEventListener('click', playBgAudio, { once: true });
   };
 
   window.STN = G;
